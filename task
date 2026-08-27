@@ -1,0 +1,603 @@
+# Task 1: Data Cleaning & Preprocessing
+
+This version follows the internship PDF: explore the dataset, handle missing values, encode categorical features, standardize numerical features, and visualize/remove outliers. 
+
+## 1. Python Code
+
+Save this as **`task1_preprocessing.py`**.
+
+```python
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+from sklearn.preprocessing import StandardScaler
+
+
+# Load the Titanic dataset
+df = pd.read_csv("Titanic-Dataset.csv")
+
+print("First 5 rows of the dataset:")
+print(df.head())
+
+print("\nShape of the dataset:")
+print(df.shape)
+
+
+# Check the information of the dataset
+print("\nDataset information:")
+df.info()
+
+
+# Check missing values
+print("\nMissing values:")
+print(df.isnull().sum())
+
+
+# Basic statistics
+print("\nBasic statistics:")
+print(df.describe())
+
+
+# -----------------------------------------
+# Handling Missing Values
+# -----------------------------------------
+
+# Cabin has many missing values, so I removed this column
+df = df.drop("Cabin", axis=1)
+
+# Fill missing Age values with median
+df["Age"] = df["Age"].fillna(df["Age"].median())
+
+# Fill missing Embarked values with mode
+df["Embarked"] = df["Embarked"].fillna(df["Embarked"].mode()[0])
+
+
+print("\nMissing values after handling:")
+print(df.isnull().sum())
+
+
+# -----------------------------------------
+# Encoding Categorical Data
+# -----------------------------------------
+
+# Convert Sex into numbers
+df["Sex"] = df["Sex"].map({
+    "male": 0,
+    "female": 1
+})
+
+# Convert Embarked into separate columns
+df = pd.get_dummies(df, columns=["Embarked"], dtype=int)
+
+
+# Remove Name and Ticket for this basic ML preprocessing
+df = df.drop(["Name", "Ticket"], axis=1)
+
+
+print("\nDataset after encoding:")
+print(df.head())
+
+
+# -----------------------------------------
+# Detecting Outliers
+# -----------------------------------------
+
+# Boxplot for Age
+plt.figure(figsize=(7, 4))
+sns.boxplot(x=df["Age"])
+plt.title("Age Boxplot")
+plt.show()
+
+
+# Boxplot for Fare
+plt.figure(figsize=(7, 4))
+sns.boxplot(x=df["Fare"])
+plt.title("Fare Boxplot")
+plt.show()
+
+
+# -----------------------------------------
+# Removing Outliers using IQR
+# -----------------------------------------
+
+for column in ["Age", "Fare"]:
+
+    Q1 = df[column].quantile(0.25)
+    Q3 = df[column].quantile(0.75)
+
+    IQR = Q3 - Q1
+
+    lower_limit = Q1 - 1.5 * IQR
+    upper_limit = Q3 + 1.5 * IQR
+
+    df = df[
+        (df[column] >= lower_limit) &
+        (df[column] <= upper_limit)
+    ]
+
+
+print("\nShape after removing outliers:")
+print(df.shape)
+
+
+# -----------------------------------------
+# Standardization
+# -----------------------------------------
+
+columns_to_scale = ["Age", "Fare", "SibSp", "Parch"]
+
+scaler = StandardScaler()
+
+df[columns_to_scale] = scaler.fit_transform(
+    df[columns_to_scale]
+)
+
+
+print("\nDataset after standardization:")
+print(df.head())
+
+
+# -----------------------------------------
+# Final Check
+# -----------------------------------------
+
+print("\nFinal missing values:")
+print(df.isnull().sum())
+
+print("\nFinal dataset shape:")
+print(df.shape)
+
+
+# Save the final dataset
+df.to_csv("Titanic-final-preprocessed.csv", index=False)
+
+print("\nTask 1 completed successfully!")
+```
+
+---
+
+# 2. Explanation of the Code
+
+### Step 1 — Import libraries
+
+```python
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+from sklearn.preprocessing import StandardScaler
+```
+
+I used:
+
+* **Pandas** → to read and manipulate the dataset.
+* **NumPy** → for numerical operations.
+* **Matplotlib** → for graphs.
+* **Seaborn** → for boxplots.
+* **StandardScaler** → for standardizing numerical data.
+
+---
+
+### Step 2 — Load the dataset
+
+```python
+df = pd.read_csv("Titanic-Dataset.csv")
+```
+
+This reads the Titanic CSV file.
+
+```python
+print(df.shape)
+```
+
+This shows the number of rows and columns.
+
+The original Titanic dataset used here has **891 rows and 12 columns**.
+
+---
+
+### Step 3 — Check missing values
+
+```python
+print(df.isnull().sum())
+```
+
+This tells us how many values are missing in each column.
+
+For this dataset, the important missing-value columns are:
+
+* `Age`
+* `Cabin`
+* `Embarked`
+
+---
+
+### Step 4 — Handle missing values
+
+I removed `Cabin`:
+
+```python
+df = df.drop("Cabin", axis=1)
+```
+
+The reason is that `Cabin` contains a large number of missing values.
+
+For `Age`, I used the median:
+
+```python
+df["Age"] = df["Age"].fillna(df["Age"].median())
+```
+
+For `Embarked`, I used the most common value:
+
+```python
+df["Embarked"] = df["Embarked"].fillna(
+    df["Embarked"].mode()[0]
+)
+```
+
+The task specifically asks for missing-value handling using methods such as mean/median/imputation. 
+
+---
+
+# 5. Encoding
+
+Machine-learning models generally need numerical input.
+
+For `Sex`:
+
+```python
+df["Sex"] = df["Sex"].map({
+    "male": 0,
+    "female": 1
+})
+```
+
+So:
+
+```text
+male   → 0
+female → 1
+```
+
+For `Embarked`:
+
+```python
+df = pd.get_dummies(
+    df,
+    columns=["Embarked"],
+    dtype=int
+)
+```
+
+This performs **one-hot encoding**.
+
+The task requires categorical features to be converted into numerical values. 
+
+---
+
+# 6. Removing unnecessary columns
+
+```python
+df = df.drop(["Name", "Ticket"], axis=1)
+```
+
+For this beginner-level preprocessing task, I removed these columns because they are identifiers/high-cardinality text fields and are not needed for the basic preprocessing demonstration.
+
+---
+
+# 7. Finding Outliers
+
+I used a boxplot:
+
+```python
+sns.boxplot(x=df["Fare"])
+```
+
+and:
+
+```python
+sns.boxplot(x=df["Age"])
+```
+
+A boxplot helps us visually identify unusually high or low values.
+
+This follows the task requirement to visualize outliers using boxplots. 
+
+---
+
+# 8. Removing Outliers
+
+I used the **IQR method**.
+
+```python
+Q1 = df[column].quantile(0.25)
+Q3 = df[column].quantile(0.75)
+
+IQR = Q3 - Q1
+```
+
+Then:
+
+```python
+lower_limit = Q1 - 1.5 * IQR
+upper_limit = Q3 + 1.5 * IQR
+```
+
+Values outside these limits are removed.
+
+---
+
+# 9. Standardization
+
+I selected:
+
+```python
+columns_to_scale = [
+    "Age",
+    "Fare",
+    "SibSp",
+    "Parch"
+]
+```
+
+Then:
+
+```python
+scaler = StandardScaler()
+
+df[columns_to_scale] = scaler.fit_transform(
+    df[columns_to_scale]
+)
+```
+
+Standardization puts numerical features on a comparable scale.
+
+---
+
+# 10. Save the final dataset
+
+```python
+df.to_csv(
+    "Titanic-final-preprocessed.csv",
+    index=False
+)
+```
+
+This creates:
+
+**`Titanic-final-preprocessed.csv`**
+
+which is the cleaned dataset that can later be used for machine-learning models.
+
+---
+
+# README.md
+
+You can create a file called **`README.md`** and put this in it:
+
+```markdown
+# Titanic Dataset - Data Cleaning and Preprocessing
+
+## Task 1: Data Cleaning & Preprocessing
+
+This project is part of my AI & ML Internship.
+
+The main aim of this task is to clean the Titanic dataset and prepare it for machine learning.
+
+## Dataset
+
+I used the Titanic dataset.
+
+The original dataset contains 891 rows and 12 columns.
+
+## Tools Used
+
+- Python
+- Pandas
+- NumPy
+- Matplotlib
+- Seaborn
+- Scikit-learn
+
+## Steps Performed
+
+### 1. Dataset Exploration
+
+First, I loaded the dataset using Pandas and checked:
+
+- First few rows
+- Number of rows and columns
+- Data types
+- Missing values
+- Basic statistics
+
+### 2. Handling Missing Values
+
+I found missing values in the dataset.
+
+- Cabin was removed because it had many missing values.
+- Missing Age values were replaced with the median.
+- Missing Embarked values were replaced with the mode.
+
+### 3. Categorical Encoding
+
+I converted categorical values into numerical values.
+
+For Sex:
+
+- male = 0
+- female = 1
+
+I used one-hot encoding for the Embarked column.
+
+### 4. Removing Unnecessary Columns
+
+I removed Name and Ticket for this basic preprocessing task.
+
+### 5. Outlier Detection
+
+I used boxplots to check Age and Fare for outliers.
+
+### 6. Outlier Removal
+
+I used the IQR method to remove extreme values from Age and Fare.
+
+### 7. Standardization
+
+I used StandardScaler on:
+
+- Age
+- Fare
+- SibSp
+- Parch
+
+### 8. Final Dataset
+
+The final cleaned dataset was saved as:
+
+Titanic-final-preprocessed.csv
+
+## How to Run
+
+Install the required libraries:
+
+pip install pandas numpy matplotlib seaborn scikit-learn
+
+Then run:
+
+python task1_preprocessing.py
+
+## Conclusion
+
+In this task, I learned how to clean a dataset and prepare it for machine learning. I learned how to handle missing values, encode categorical data, detect outliers and standardize numerical features.
+```
+
+---
+
+# Interview Questions
+
+The PDF provides these eight interview questions. 
+
+### 1. What are the different types of missing data?
+
+There are three common types:
+
+**MCAR:** Missing Completely At Random.
+
+**MAR:** Missing At Random.
+
+**MNAR:** Missing Not At Random.
+
+---
+
+### 2. How do you handle categorical variables?
+
+Categorical variables can be converted into numerical values using encoding.
+
+Two common methods are:
+
+* Label encoding
+* One-hot encoding
+
+In my project, I used numerical encoding for `Sex` and one-hot encoding for `Embarked`.
+
+---
+
+### 3. What is the difference between normalization and standardization?
+
+**Normalization** generally changes values to a fixed range, such as 0 to 1.
+
+**Standardization** changes the data so that the values are centered around mean 0 with standard deviation 1.
+
+---
+
+### 4. How do you detect outliers?
+
+Outliers can be detected using:
+
+* Boxplots
+* IQR
+* Z-score
+
+In my project, I used **boxplots and the IQR method**.
+
+---
+
+### 5. Why is preprocessing important in ML?
+
+Preprocessing is important because raw data may contain:
+
+* Missing values
+* Categorical values
+* Outliers
+* Features with different scales
+
+Cleaning the data makes it more suitable for machine-learning algorithms.
+
+---
+
+### 6. What is one-hot encoding vs label encoding?
+
+**Label encoding** gives each category a number.
+
+Example:
+
+```text
+Male = 0
+Female = 1
+```
+
+**One-hot encoding** creates separate columns for different categories.
+
+---
+
+### 7. How do you handle data imbalance?
+
+Some methods are:
+
+* Oversampling
+* Undersampling
+* Class weights
+* Collecting more data
+
+We can also use metrics such as precision, recall and F1-score.
+
+---
+
+### 8. Can preprocessing affect model accuracy?
+
+Yes.
+
+Good preprocessing can improve model performance. Poor preprocessing can also reduce performance or introduce problems.
+
+---
+
+## Simple explanation for your viva/interview
+
+If the interviewer asks **"Explain your project"**, you can explain it like this:
+
+> **"I worked on the Titanic dataset for data cleaning and preprocessing. First, I loaded the dataset using Pandas and checked the data types and missing values. I removed the Cabin column because it had many missing values. I filled missing Age values using the median and missing Embarked values using the mode. Then I converted categorical data into numerical data. I used a boxplot to identify outliers and the IQR method to remove them. Finally, I used StandardScaler to standardize some numerical features and saved the final preprocessed dataset as a CSV file."**
+
+This matches the task's objective of learning **data cleaning, handling nulls, encoding, and feature scaling**. 
+
+### Suggested GitHub structure
+
+```text
+Titanic-Task-1/
+│
+├── Titanic-Dataset.csv
+├── Titanic-final-preprocessed.csv
+├── task1_preprocessing.py
+├── README.md
+├── requirements.txt
+│
+├── images/
+│   ├── age_boxplot.png
+│   └── fare_boxplot.png
+│
+└── interview_questions.md
+```
+
+The internship instructions also ask you to create a separate GitHub repository for each task and include the code, dataset, screenshots if any, and a short README. 
