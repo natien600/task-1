@@ -1,1 +1,399 @@
 
+
+# Task 2 – Exploratory Data Analysis (EDA)
+
+## Titanic Dataset
+
+### Introduction
+
+In this task, I performed Exploratory Data Analysis (EDA) on the Titanic dataset. The main purpose of EDA is to understand the data before using it for further analysis or machine learning.
+
+I used Python with Pandas, Matplotlib and Seaborn to check the data, find missing values, calculate basic statistics and create different graphs.
+
+---
+
+## Python Code
+
+```python
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+# Load the Titanic dataset
+df = pd.read_csv("Titanic-Dataset (2).csv")
+
+# Display first 5 rows
+print("First 5 rows of the dataset:")
+print(df.head())
+
+# Display number of rows and columns
+print("\nShape of the dataset:")
+print(df.shape)
+
+# Display column names
+print("\nColumn names:")
+print(df.columns)
+
+# Display basic information
+print("\nInformation about the dataset:")
+df.info()
+
+# Display statistical information
+print("\nStatistical summary:")
+print(df.describe())
+
+# Check missing values
+print("\nMissing values:")
+print(df.isnull().sum())
+
+# Check duplicate rows
+print("\nNumber of duplicate rows:")
+print(df.duplicated().sum())
+
+
+# ------------------------------------------------
+# Mean, Median and Standard Deviation
+# ------------------------------------------------
+
+print("\nMean:")
+print(df.select_dtypes(include="number").mean())
+
+print("\nMedian:")
+print(df.select_dtypes(include="number").median())
+
+print("\nStandard Deviation:")
+print(df.select_dtypes(include="number").std())
+
+
+# ------------------------------------------------
+# Histogram of Age
+# ------------------------------------------------
+
+plt.figure(figsize=(8, 5))
+
+sns.histplot(df["Age"].dropna(), bins=30, kde=True)
+
+plt.title("Age Distribution")
+plt.xlabel("Age")
+plt.ylabel("Number of Passengers")
+
+plt.show()
+
+
+# ------------------------------------------------
+# Histogram of Fare
+# ------------------------------------------------
+
+plt.figure(figsize=(8, 5))
+
+sns.histplot(df["Fare"], bins=30, kde=True)
+
+plt.title("Fare Distribution")
+plt.xlabel("Fare")
+plt.ylabel("Number of Passengers")
+
+plt.show()
+
+
+# ------------------------------------------------
+# Boxplot of Age
+# ------------------------------------------------
+
+plt.figure(figsize=(8, 5))
+
+sns.boxplot(x=df["Age"])
+
+plt.title("Age Boxplot")
+plt.xlabel("Age")
+
+plt.show()
+
+
+# ------------------------------------------------
+# Boxplot of Fare
+# ------------------------------------------------
+
+plt.figure(figsize=(8, 5))
+
+sns.boxplot(x=df["Fare"])
+
+plt.title("Fare Boxplot")
+plt.xlabel("Fare")
+
+plt.show()
+
+
+# ------------------------------------------------
+# Survival Count
+# ------------------------------------------------
+
+plt.figure(figsize=(6, 5))
+
+sns.countplot(x="Survived", data=df)
+
+plt.title("Survival Count")
+plt.xlabel("Survived (0 = No, 1 = Yes)")
+plt.ylabel("Number of Passengers")
+
+plt.show()
+
+
+# ------------------------------------------------
+# Survival according to Gender
+# ------------------------------------------------
+
+plt.figure(figsize=(7, 5))
+
+sns.countplot(x="Sex", hue="Survived", data=df)
+
+plt.title("Survival according to Gender")
+plt.xlabel("Gender")
+plt.ylabel("Number of Passengers")
+
+plt.show()
+
+
+# ------------------------------------------------
+# Survival according to Passenger Class
+# ------------------------------------------------
+
+plt.figure(figsize=(7, 5))
+
+sns.countplot(x="Pclass", hue="Survived", data=df)
+
+plt.title("Survival according to Passenger Class")
+plt.xlabel("Passenger Class")
+plt.ylabel("Number of Passengers")
+
+plt.show()
+
+
+# ------------------------------------------------
+# Correlation Matrix
+# ------------------------------------------------
+
+numeric_data = df.select_dtypes(include="number")
+
+correlation = numeric_data.corr()
+
+print("\nCorrelation Matrix:")
+print(correlation)
+
+plt.figure(figsize=(9, 7))
+
+sns.heatmap(
+    correlation,
+    annot=True,
+    fmt=".2f",
+    cmap="coolwarm"
+)
+
+plt.title("Correlation Matrix")
+
+plt.show()
+
+
+# ------------------------------------------------
+# Pairplot
+# ------------------------------------------------
+
+data_for_pairplot = df[
+    ["Survived", "Pclass", "Age", "SibSp", "Parch", "Fare"]
+].dropna()
+
+sns.pairplot(
+    data_for_pairplot,
+    hue="Survived"
+)
+
+plt.show()
+
+
+# ------------------------------------------------
+# Survival Rate according to Gender
+# ------------------------------------------------
+
+gender_rate = df.groupby("Sex")["Survived"].mean()
+
+print("\nSurvival rate according to gender:")
+print(gender_rate)
+
+
+# ------------------------------------------------
+# Survival Rate according to Class
+# ------------------------------------------------
+
+class_rate = df.groupby("Pclass")["Survived"].mean()
+
+print("\nSurvival rate according to passenger class:")
+print(class_rate)
+
+
+# ------------------------------------------------
+# Survival Rate according to Embarked Port
+# ------------------------------------------------
+
+embarked_rate = df.groupby("Embarked")["Survived"].mean()
+
+print("\nSurvival rate according to embarked port:")
+print(embarked_rate)
+```
+
+---
+
+# Results and Observations
+
+After running the code, I found some useful information about the Titanic dataset.
+
+### 1. Dataset size
+
+The dataset contains **891 rows and 12 columns**.
+
+The columns include information such as passenger class, name, gender, age, fare, cabin and survival status.
+
+### 2. Missing values
+
+There are some missing values in the dataset.
+
+The important missing values are:
+
+* Age – 177 values are missing
+* Cabin – 687 values are missing
+* Embarked – 2 values are missing
+
+The Cabin column has the highest number of missing values.
+
+### 3. Age
+
+The average age of the passengers is around **29.7 years**.
+
+The median age is around **28 years**.
+
+The age histogram shows that passengers belonged to different age groups, including children and older people.
+
+### 4. Fare
+
+The average fare is around **32.20**, while the median fare is around **14.45**.
+
+This difference shows that some passengers paid much higher fares than most other passengers.
+
+The fare boxplot also shows some high-value observations.
+
+### 5. Survival
+
+The `Survived` column contains:
+
+```text
+0 = Passenger did not survive
+1 = Passenger survived
+```
+
+From the survival graph, more passengers did not survive than survived.
+
+### 6. Gender and Survival
+
+When I compared survival with gender, I found that female passengers had a much higher survival rate than male passengers.
+
+The approximate survival rates were:
+
+```text
+Female = 74.2%
+Male   = 18.9%
+```
+
+This shows that gender was an important factor in the Titanic dataset.
+
+### 7. Passenger Class and Survival
+
+I also compared passenger class with survival.
+
+The approximate survival rates were:
+
+```text
+1st Class = 63.0%
+2nd Class = 47.3%
+3rd Class = 24.2%
+```
+
+From this, I can see that first-class passengers had a much better chance of surviving than third-class passengers.
+
+### 8. Correlation
+
+I created a correlation matrix to see the relationship between numerical columns.
+
+Correlation values help us understand whether two numerical variables have a relationship with each other.
+
+The heatmap makes these relationships easier to see.
+
+### 9. Pairplot
+
+I also created a pairplot using:
+
+* Survived
+* Pclass
+* Age
+* SibSp
+* Parch
+* Fare
+
+This helped me visually compare different numerical features and see whether there were any noticeable patterns.
+
+---
+
+# Conclusion
+
+From this EDA, I was able to understand the Titanic dataset better.
+
+I found that the dataset contains missing values, especially in the Age and Cabin columns. I also found some high fare values that can be considered possible outliers.
+
+The graphs showed some clear patterns. Female passengers had a much higher survival rate than male passengers. Similarly, first-class passengers had a higher survival rate than passengers in second and third class.
+
+Overall, EDA was useful because it helped me understand the data and find important patterns before doing any machine learning on the Titanic dataset.
+
+---
+
+# Interview Questions and Answers
+
+## 1. What is the purpose of EDA?
+
+EDA stands for Exploratory Data Analysis. It is used to understand a dataset before doing further analysis or machine learning. It helps us find missing values, outliers, patterns and relationships in the data.
+
+## 2. How do boxplots help in understanding a dataset?
+
+A boxplot shows the distribution of numerical data. It shows the median and spread of the data and also helps us find possible outliers.
+
+## 3. What is correlation and why is it useful?
+
+Correlation tells us how two numerical variables are related. It is useful for finding whether changes in one variable are associated with changes in another variable.
+
+## 4. How do you detect skewness in data?
+
+Skewness can be checked using a histogram or boxplot. If the data is not evenly distributed around the center, it may be skewed.
+
+## 5. What is multicollinearity?
+
+Multicollinearity happens when two or more independent variables are highly related to each other. It can cause problems in some machine learning and statistical models.
+
+## 6. What tools do you use for EDA?
+
+For this task, I used:
+
+* Pandas
+* Matplotlib
+* Seaborn
+
+Pandas was used for handling the data, while Matplotlib and Seaborn were used for creating graphs.
+
+## 7. Can you explain a time when EDA helped you find a problem?
+
+While working on the Titanic dataset, EDA helped me find missing values in columns such as Age, Cabin and Embarked. I also noticed some high fare values using the boxplot.
+
+## 8. What is the role of visualization in ML?
+
+Visualization helps us understand the data more easily. It can show patterns, relationships, distributions and outliers that may not be obvious from just looking at numbers.
+
+
+
+
+
+
